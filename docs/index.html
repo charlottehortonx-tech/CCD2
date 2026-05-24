@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Binance TH — Content Checker</title>
+  <style>
+    :root {
+      --bg: #0b0e11;
+      --card: #181a20;
+      --border: #2b3139;
+      --text: #eaecef;
+      --muted: #848e9c;
+      --accent: #f0b90b;
+      --accent-hover: #fcd535;
+      --accent-dark: #1a1d24;
+      --success: #03a66d;
+      --danger: #cf304a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Sarabun", Roboto, sans-serif;
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    main {
+      max-width: 640px;
+      width: 100%;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px 32px;
+    }
+    h1 {
+      font-size: 28px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .subtitle {
+      color: var(--muted);
+      margin-bottom: 28px;
+      font-size: 15px;
+    }
+    .btn {
+      width: 100%;
+      background: var(--accent);
+      color: #0b0e11;
+      border: none;
+      padding: 18px 24px;
+      font-size: 17px;
+      font-weight: 700;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.05s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn:hover { background: var(--accent-hover); }
+    .btn:active { transform: scale(0.99); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn.success { background: var(--success); color: #fff; }
+    .btn.error { background: var(--danger); color: #fff; }
+    .steps {
+      margin-top: 28px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+    .steps h2 {
+      font-size: 14px;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .steps ol {
+      padding-left: 22px;
+    }
+    .steps li {
+      margin-bottom: 8px;
+      color: var(--text);
+      font-size: 15px;
+    }
+    .steps li a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .steps li a:hover { text-decoration: underline; }
+    .footer {
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .footer a {
+      color: var(--muted);
+      text-decoration: none;
+    }
+    .footer a:hover { color: var(--accent); }
+    .pulse {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      margin-right: 6px;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="card">
+      <h1>🔍 Binance TH Content Checker</h1>
+      <p class="subtitle">ตรวจ กลต. compliance + typo ผ่าน Claude.ai — กดปุ่มเดียวจบ</p>
+
+      <button id="copyBtn" class="btn">
+        <span id="btnIcon">📋</span>
+        <span id="btnText">Copy Prompt to Clipboard</span>
+      </button>
+
+      <div class="steps">
+        <h2>วิธีใช้ (1 chat = ตรวจได้ไม่จำกัด)</h2>
+        <ol>
+          <li>กดปุ่ม <strong>Copy Prompt</strong> ด้านบน</li>
+          <li>เปิด <a href="https://claude.ai/new" target="_blank" rel="noopener">claude.ai → New Chat</a></li>
+          <li>Paste (Ctrl+V หรือ ⌘+V) → ส่ง</li>
+          <li>รอ Claude ตอบ <em>"พร้อมตรวจแล้ว"</em></li>
+          <li>วาง content หรือแนบไฟล์ (PDF/DOCX/ข้อความ) → ได้ผลตรวจทันที</li>
+          <li>ตรวจ content อื่นต่อใน chat เดียวกันได้เลย</li>
+        </ol>
+      </div>
+
+      <div class="footer">
+        <span><span class="pulse"></span>Prompt อัปเดตล่าสุด: <span id="lastUpdated">กำลังโหลด...</span></span>
+        <a href="https://github.com/charlottehortonx-tech/CryptoCheckDoc" target="_blank" rel="noopener">GitHub ↗</a>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const REPO = 'charlottehortonx-tech/CCD2';
+    const FILE = 'check-content-prompt.md';
+    const RAW_URL = `https://raw.githubusercontent.com/${REPO}/main/${FILE}`;
+    const API_URL = `https://api.github.com/repos/${REPO}/commits?path=${FILE}&per_page=1`;
+
+    const btn = document.getElementById('copyBtn');
+    const btnIcon = document.getElementById('btnIcon');
+    const btnText = document.getElementById('btnText');
+
+    // Extract prompt from inside the ```` code fence
+    function extractPrompt(md) {
+      const fenceRegex = /^````\s*\n([\s\S]*?)\n````\s*$/m;
+      const match = md.match(fenceRegex);
+      return match ? match[1].trim() : md.trim();
+    }
+
+    async function copyPrompt() {
+      btn.disabled = true;
+      btnText.textContent = 'กำลังโหลด...';
+
+      try {
+        const res = await fetch(RAW_URL + '?t=' + Date.now()); // cache-bust
+        if (!res.ok) throw new Error('Fetch failed: ' + res.status);
+        const md = await res.text();
+        const prompt = extractPrompt(md);
+
+        await navigator.clipboard.writeText(prompt);
+
+        btn.classList.add('success');
+        btnIcon.textContent = '✅';
+        btnText.textContent = 'Copied! ไปวางใน Claude.ai ได้เลย';
+      } catch (err) {
+        console.error(err);
+        btn.classList.add('error');
+        btnIcon.textContent = '❌';
+        btnText.textContent = 'Copy ไม่สำเร็จ — ลองใหม่อีกครั้ง';
+      } finally {
+        setTimeout(() => {
+          btn.disabled = false;
+          btn.classList.remove('success', 'error');
+          btnIcon.textContent = '📋';
+          btnText.textContent = 'Copy Prompt to Clipboard';
+        }, 3000);
+      }
+    }
+
+    async function loadLastUpdated() {
+      try {
+        const res = await fetch(API_URL);
+        const commits = await res.json();
+        if (commits.length > 0) {
+          const date = new Date(commits[0].commit.committer.date);
+          const formatted = date.toLocaleDateString('th-TH', {
+            day: 'numeric', month: 'short', year: 'numeric'
+          });
+          document.getElementById('lastUpdated').textContent = formatted;
+        }
+      } catch {
+        document.getElementById('lastUpdated').textContent = '—';
+      }
+    }
+
+    btn.addEventListener('click', copyPrompt);
+    loadLastUpdated();
+  </script>
+</body>
+</html>
