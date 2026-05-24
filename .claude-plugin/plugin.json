@@ -1,0 +1,9 @@
+{
+  "name": "binance-th-content-checker",
+  "version": "0.1.0",
+  "description": "ตรวจสอบ content ของ Binance TH — กลต. compliance + typo check ทันทีในแชท",
+  "author": {
+    "name": "Binance TH Content Team"
+  },
+  "keywords": ["compliance", "typo", "กลต", "binance-th", "content-check"]
+}
