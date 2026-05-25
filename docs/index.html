@@ -87,6 +87,18 @@
     }
     .pwd-input:focus { border-color: var(--accent); }
     .pwd-input.error { border-color: var(--danger); }
+    .pwd-label {
+      color: var(--danger);
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pwd-label.unlocked {
+      color: var(--success);
+    }
     .pwd-hint {
       color: var(--muted);
       font-size: 13px;
@@ -155,11 +167,12 @@
       <h1>🔍 Binance TH Content Checker</h1>
       <p class="subtitle">ตรวจ กลต. compliance + typo ผ่าน Claude.ai — กดปุ่มเดียวจบ</p>
 
+      <p class="pwd-label" id="pwdLabel">🔒 ใส่รหัสเพื่อปลดล็อค</p>
       <input
         type="password"
         id="pwdInput"
         class="pwd-input"
-        placeholder="🔒 ใส่รหัสเพื่อปลดล็อค"
+        placeholder="ใส่รหัสที่นี่..."
         autocomplete="off"
       />
       <p class="pwd-hint" id="pwdHint">ทีม content เท่านั้น — สอบถามรหัสจาก lead</p>
@@ -202,12 +215,20 @@
     const btnText = document.getElementById('btnText');
     const pwdInput = document.getElementById('pwdInput');
     const pwdHint = document.getElementById('pwdHint');
+    const pwdLabel = document.getElementById('pwdLabel');
+
+    function setUnlockedUI() {
+      pwdInput.value = '••••••••';
+      pwdInput.disabled = true;
+      pwdInput.classList.remove('error');
+      pwdLabel.textContent = '✅ ปลดล็อคแล้ว';
+      pwdLabel.classList.add('unlocked');
+      pwdHint.textContent = 'พร้อม copy prompt';
+    }
 
     // Persist unlock so user ไม่ต้องใส่ทุกครั้ง
     if (sessionStorage.getItem(STORAGE_KEY) === '1') {
-      pwdInput.value = '••••••••';
-      pwdInput.disabled = true;
-      pwdHint.textContent = '✅ ปลดล็อคแล้ว';
+      setUnlockedUI();
     }
 
     function checkPassword() {
@@ -215,10 +236,7 @@
       const val = pwdInput.value.trim();
       if (val === PASSWORD) {
         sessionStorage.setItem(STORAGE_KEY, '1');
-        pwdInput.value = '••••••••';
-        pwdInput.disabled = true;
-        pwdInput.classList.remove('error');
-        pwdHint.textContent = '✅ ปลดล็อคแล้ว';
+        setUnlockedUI();
         return true;
       }
       pwdInput.classList.add('error');
