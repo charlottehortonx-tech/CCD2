@@ -72,39 +72,6 @@
     .btn:disabled { opacity: 0.6; cursor: not-allowed; }
     .btn.success { background: var(--success); color: #fff; }
     .btn.error { background: var(--danger); color: #fff; }
-    .pwd-input {
-      width: 100%;
-      background: var(--accent-dark);
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 14px 16px;
-      font-size: 16px;
-      margin-bottom: 12px;
-      font-family: inherit;
-      outline: none;
-      transition: border-color 0.15s;
-    }
-    .pwd-input:focus { border-color: var(--accent); }
-    .pwd-input.error { border-color: var(--danger); }
-    .pwd-label {
-      color: var(--danger);
-      font-size: 15px;
-      font-weight: 700;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .pwd-label.unlocked {
-      color: var(--success);
-    }
-    .pwd-hint {
-      color: var(--muted);
-      font-size: 13px;
-      margin-bottom: 12px;
-      text-align: center;
-    }
     .steps {
       margin-top: 28px;
       padding-top: 24px;
@@ -167,16 +134,6 @@
       <h1>🔍 Binance TH Content Checker</h1>
       <p class="subtitle">ตรวจ กลต. compliance + typo ผ่าน Claude.ai — กดปุ่มเดียวจบ</p>
 
-      <p class="pwd-label" id="pwdLabel">🔒 ใส่รหัสเพื่อปลดล็อค</p>
-      <input
-        type="password"
-        id="pwdInput"
-        class="pwd-input"
-        placeholder="ใส่รหัสที่นี่..."
-        autocomplete="off"
-      />
-      <p class="pwd-hint" id="pwdHint">ทีม content เท่านั้น — สอบถามรหัสจาก lead</p>
-
       <button id="copyBtn" class="btn">
         <span id="btnIcon">📋</span>
         <span id="btnText">Copy Prompt to Clipboard</span>
@@ -207,47 +164,9 @@
     const RAW_URL = `https://raw.githubusercontent.com/${REPO}/main/${FILE}`;
     const API_URL = `https://api.github.com/repos/${REPO}/commits?path=${FILE}&per_page=1`;
 
-    const PASSWORD = 'รักนะครับ';
-    const STORAGE_KEY = 'ccd2_unlocked';
-
     const btn = document.getElementById('copyBtn');
     const btnIcon = document.getElementById('btnIcon');
     const btnText = document.getElementById('btnText');
-    const pwdInput = document.getElementById('pwdInput');
-    const pwdHint = document.getElementById('pwdHint');
-    const pwdLabel = document.getElementById('pwdLabel');
-
-    function setUnlockedUI() {
-      pwdInput.value = '••••••••';
-      pwdInput.disabled = true;
-      pwdInput.classList.remove('error');
-      pwdLabel.textContent = '✅ ปลดล็อคแล้ว';
-      pwdLabel.classList.add('unlocked');
-      pwdHint.textContent = 'พร้อม copy prompt';
-    }
-
-    // Persist unlock so user ไม่ต้องใส่ทุกครั้ง
-    if (sessionStorage.getItem(STORAGE_KEY) === '1') {
-      setUnlockedUI();
-    }
-
-    function checkPassword() {
-      if (sessionStorage.getItem(STORAGE_KEY) === '1') return true;
-      const val = pwdInput.value.trim();
-      if (val === PASSWORD) {
-        sessionStorage.setItem(STORAGE_KEY, '1');
-        setUnlockedUI();
-        return true;
-      }
-      pwdInput.classList.add('error');
-      pwdHint.textContent = '❌ รหัสไม่ถูกต้อง';
-      pwdInput.focus();
-      setTimeout(() => {
-        pwdInput.classList.remove('error');
-        pwdHint.textContent = 'ทีม content เท่านั้น — สอบถามรหัสจาก lead';
-      }, 2500);
-      return false;
-    }
 
     // Extract prompt from inside the ```` code fence
     function extractPrompt(md) {
@@ -257,8 +176,6 @@
     }
 
     async function copyPrompt() {
-      if (!checkPassword()) return;
-
       btn.disabled = true;
       btnText.textContent = 'กำลังโหลด...';
 
@@ -305,9 +222,6 @@
     }
 
     btn.addEventListener('click', copyPrompt);
-    pwdInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') copyPrompt();
-    });
     loadLastUpdated();
   </script>
 </body>
